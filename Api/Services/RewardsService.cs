@@ -37,23 +37,32 @@ public class RewardsService : IRewardsService
         count++;
         List<VisitedLocation> userLocations = user.VisitedLocations.ToList();
         List<Attraction> attractions = _gpsUtil.GetAttractions();
-        List<UserReward> calculatedRewards = new ();
+        List<UserReward> computedRewards = new();
+
+        // O(1) membership checks for already rewarded attractions
+        var rewardedNames = new HashSet<string>(
+            user.UserRewards.Select(r => r.Attraction.AttractionName),
+            StringComparer.OrdinalIgnoreCase);
 
         foreach (var visitedLocation in userLocations)
         {
             foreach (var attraction in attractions)
             {
-                if (!user.UserRewards.Exists(r => r.Attraction.AttractionName == attraction.AttractionName))
+                // Fast skip if already rewarded
+                if (rewardedNames.Contains(attraction.AttractionName))
+                    continue;
+
+                if (NearAttraction(visitedLocation, attraction))
                 {
-                    if (NearAttraction(visitedLocation, attraction))
-                    {
-                        calculatedRewards.Add(new UserReward(visitedLocation, attraction, GetRewardPoints(attraction, user)));
-                    }
+                    var points = GetRewardPoints(attraction, user); // compute only when needed
+                    computedRewards.Add(new UserReward(visitedLocation, attraction, points));
+                    rewardedNames.Add(attraction.AttractionName); // avoid duplicate rewards within this run
                 }
             }
         }
 
-        user.AddUserRewards(calculatedRewards);
+        if (computedRewards.Count > 0)
+            user.AddUserRewards(computedRewards);
     }
 
     public bool IsWithinAttractionProximity(Attraction attraction, Locations location)

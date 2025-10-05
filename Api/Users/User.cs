@@ -33,12 +33,13 @@ public class User
         VisitedLocations.Clear();
     }
 
-    public void AddUserReward(UserReward userReward)
+    public void AddUserRewards(List<UserReward> userRewards)
     {
-        if (!UserRewards.Exists(r => r.Attraction.AttractionName == userReward.Attraction.AttractionName))
-        {
-            UserRewards.Add(userReward);
-        }
+        List<UserReward> rewardsToAdd = userRewards
+            .DistinctBy(r => r.Attraction.AttractionName)
+            .ExceptBy(UserRewards.Select(r => r.Attraction.AttractionName), r => r.Attraction.AttractionName)
+            .ToList();
+        UserRewards.AddRange(rewardsToAdd);
     }
 
     public VisitedLocation GetLastVisitedLocation()

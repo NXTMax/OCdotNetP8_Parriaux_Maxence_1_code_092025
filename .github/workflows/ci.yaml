@@ -1,0 +1,29 @@
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 7.0.x
+      - name: Test
+        run: dotnet test --verbosity normal
+  
+  build:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Build
+        run: dotnet build --configuration Release --output ./build
+      - name: Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: ./build

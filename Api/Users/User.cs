@@ -35,11 +35,14 @@ public class User
 
     public void AddUserRewards(List<UserReward> userRewards)
     {
-        List<UserReward> rewardsToAdd = userRewards
-            .DistinctBy(r => r.Attraction.AttractionName)
-            .ExceptBy(UserRewards.Select(r => r.Attraction.AttractionName), r => r.Attraction.AttractionName)
-            .ToList();
-        UserRewards.AddRange(rewardsToAdd);
+        lock (UserRewards)
+        {
+            List<UserReward> rewardsToAdd = userRewards
+                .DistinctBy(r => r.Attraction.AttractionName)
+                .ExceptBy(UserRewards.Select(r => r.Attraction.AttractionName), r => r.Attraction.AttractionName)
+                .ToList();
+            UserRewards.AddRange(rewardsToAdd);
+        }
     }
 
     public VisitedLocation GetLastVisitedLocation()

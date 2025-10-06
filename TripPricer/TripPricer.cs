@@ -14,9 +14,6 @@ public class TripPricer
         List<Provider> providers = new List<Provider>();
         HashSet<string> providersUsed = new HashSet<string>();
 
-        // Sleep to simulate some latency
-        Thread.Sleep(ThreadLocalRandom.Current.Next(1, 50));
-
         for (int i = 0; i < 10; i++)
         {
             int multiple = ThreadLocalRandom.Current.Next(100, 700);
